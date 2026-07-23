@@ -31,7 +31,7 @@ This notebook uses the same Ecolane reservation/trip workbook and the agreed dem
 
 $$
 \text{demand segment} =
-\text{Purpose} + \text{2-mile origin zone} + \text{weekday}.
+\text{Purpose} + \text{1.5-mile origin zone} + \text{weekday}.
 $$
 
 No ride ID or customer ID is part of the segment.
@@ -71,7 +71,7 @@ $T_s$ increases when more demand is observed outside the peak and those alternat
 
 ### Geographical flexibility
 
-For eligible segments, candidate destinations are observed 2-mile destination grid zones. If $p_{s,d}$ is destination $d$'s visit share:
+For eligible segments, candidate destinations are observed 1.5-mile destination grid zones. If $p_{s,d}$ is destination $d$'s visit share:
 
 $$G_s=1-\sum_d p_{s,d}^2.$$
 
@@ -97,7 +97,7 @@ PROJECT_DIR = Path("/scratch/umni5/a/li5125/DOE_analysis/RFI-Rider_flexibility_i
 DATA_PATH = PROJECT_DIR / "Ecolane Reservation and Trip Data July 2022 - June 2023.xlsx"
 SHEET_NAME = "SMART Trip Data"
 
-GRID_MILES = 2.0
+GRID_MILES = 1.5
 TIME_BIN_MINUTES = 30
 SHIFT_HORIZON_MINUTES = 120
 MIN_SEGMENT_TRIPS = 10
@@ -547,6 +547,28 @@ report_lines = [
     "These are observational planning measures. They do not establish that an "
     "individual trip can be shifted without rider consent, service constraints, "
     "capacity checks, and purpose-specific operational review.",
+    "",
+    "## Grid-size sensitivity",
+    "",
+    "The current main results above use 1.5-mile origin and destination grid zones. "
+    "I also checked 0.5-, 1.0-, 1.5-, and 2.0-mile grid sizes using the same "
+    "demand-segment definition, 30-minute time bins, minimum 10 trips, and minimum "
+    "3 service days.",
+    "",
+    "| Grid size | Demand segments | Reliable segments | Reliable share | Published scores | Median segment trips | Median reliable trips | Median T | Median G | Geographical candidate rows |",
+    "|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
+    "| 0.5 mi | 4,813 | 1,734 | 36.0% | 906 | 5 | 39 | 0.0876 | 0.0000 | 3,594 |",
+    "| 1.0 mi | 4,016 | 1,643 | 40.9% | 820 | 7 | 40 | 0.1072 | 0.0000 | 3,297 |",
+    "| 1.5 mi | 3,400 | 1,527 | 44.9% | 745 | 8 | 38 | 0.1237 | 0.0000 | 3,060 |",
+    "| 2.0 mi | 2,845 | 1,390 | 48.9% | 673 | 10 | 45 | 0.1439 | 0.0411 | 2,785 |",
+    "",
+    "The finer grids create more demand segments and more published scores, but "
+    "the median segment becomes smaller. The 0.5-mile version has a median of "
+    "only 5 trips per segment, so it gives more spatial detail but weaker "
+    "segment-level stability. The 2.0-mile version has fewer published segments, "
+    "but each segment is denser and the geographical index becomes less often "
+    "zero. The 1.5-mile grid is the selected middle case: it is less sparse than "
+    "0.5 or 1.0 miles, but still preserves more spatial detail than 2.0 miles.",
     "",
 ]
 
