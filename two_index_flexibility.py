@@ -1,6 +1,6 @@
 """Separate temporal and geographical flexibility indices for ClassTran.
 
-Demand segment: Purpose + 2-mile origin grid zone + weekday.
+Demand segment: Purpose + 1.5-mile origin grid zone + weekday.
 """
 
 from __future__ import annotations
@@ -50,7 +50,7 @@ def _make_grid_zone(lat, lon, lat0, lon0, lat_step, lon_step):
     )
 
 
-def build_analysis_frame(df_raw, grid_miles=2.0, time_bin_minutes=30):
+def build_analysis_frame(df_raw, grid_miles=1.5, time_bin_minutes=30):
     """Clean source fields and construct the agreed demand segments."""
     required = [
         "Trip ID", "Trip Date", "Purpose", "Promised Pick-up Time",
@@ -354,7 +354,7 @@ def calculate_geographical_flexibility(frame, segment_summary):
 
 def run_two_index_analysis(
     df_raw,
-    grid_miles=2.0,
+    grid_miles=1.5,
     time_bin_minutes=30,
     shift_horizon_minutes=120,
     min_segment_trips=10,
