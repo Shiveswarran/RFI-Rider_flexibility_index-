@@ -196,7 +196,7 @@ print("Check passed: rigid purposes are absent from both actionable candidate po
 cells.append(nbf.v4.new_markdown_cell(
 """## Temporal results
 
-The summary contains $p_{s,t_s^*}$, $A_s$, $D_s$, expected shift-potential minutes, and $T_s$. The candidate table below shows how the score is constructed from individual alternative time bins.
+The summary contains $p_{s,t_s^*}$, $A_s$, $D_s$, expected shift-potential minutes, and $T_s$. The first table below keeps the full ranked set of observed time bins for each segment; rank 1 is the peak time bin. The second table shows how the score is constructed from non-peak alternative time bins.
 """
 ))
 cells.append(nbf.v4.new_code_cell(
@@ -216,6 +216,36 @@ display(
         "D_s_minutes": "{:.1f}",
         "expected_shift_potential_minutes": "{:.1f}",
         "T_s": "{:.4f}",
+    })
+)
+"""
+))
+cells.append(nbf.v4.new_code_cell(
+"""ranked_time_bin_candidates = (
+    time_distribution.loc[time_distribution["temporal_eligible"]]
+    .sort_values(["segment_id", "time_bin_rank"])
+    .copy()
+)
+ranked_time_bin_candidates["is_peak_time_bin"] = ranked_time_bin_candidates[
+    "time_bin_rank"
+].eq(1)
+
+top_temporal_ids = top_temporal.head(5)["segment_id"]
+ranked_time_bin_examples = ranked_time_bin_candidates.loc[
+    ranked_time_bin_candidates["segment_id"].isin(top_temporal_ids)
+].sort_values(
+    ["temporal_flexibility_index", "segment_id", "time_bin_rank"],
+    ascending=[False, True, True],
+)
+
+display(
+    ranked_time_bin_examples[[
+        "Purpose", "origin_zone", "weekday", "pickup_time_bin",
+        "time_bin_trips", "p_s_t", "time_bin_rank",
+        "is_peak_time_bin", "signed_shift_minutes",
+    ]].head(30).style.format({
+        "p_s_t": "{:.1%}",
+        "signed_shift_minutes": "{:+.0f}",
     })
 )
 """
@@ -301,11 +331,13 @@ The final cell exports the segment summary and both actionable candidate pools, 
 
 cells.append(nbf.v4.new_code_cell(
 """SEGMENT_CSV = PROJECT_DIR / "two_index_segment_summary.csv"
+TIME_BIN_CSV = PROJECT_DIR / "temporal_time_bin_candidate_pool.csv"
 TEMPORAL_CSV = PROJECT_DIR / "temporal_flexibility_candidate_pool.csv"
 GEOGRAPHICAL_CSV = PROJECT_DIR / "geographical_flexibility_candidate_pool.csv"
 REPORT_PATH = PROJECT_DIR / "two_index_flexibility_results.md"
 
 segment_summary.to_csv(SEGMENT_CSV, index=False)
+ranked_time_bin_candidates.to_csv(TIME_BIN_CSV, index=False)
 temporal_candidate_pool.to_csv(TEMPORAL_CSV, index=False)
 geographical_candidate_pool.to_csv(GEOGRAPHICAL_CSV, index=False)
 
@@ -353,6 +385,12 @@ temporal_example_report = temporal_candidate_examples[[
     "pickup_time_bin", "time_bin_trips", "p_s_t",
     "signed_shift_minutes", "temporal_index_contribution",
 ]].head(20)
+
+ranked_time_bin_report = ranked_time_bin_examples[[
+    "Purpose", "origin_zone", "weekday", "pickup_time_bin",
+    "time_bin_trips", "p_s_t", "time_bin_rank", "is_peak_time_bin",
+    "signed_shift_minutes",
+]].head(30)
 
 geo_example_report = geographical_candidate_examples[[
     "Purpose", "origin_zone", "weekday", "destination_zone",
@@ -420,6 +458,17 @@ report_lines = [
     "neither high A_s nor high D_s alone guarantees high T_s. This is observed "
     "segment-level shift potential, not evidence of individual rider consent.",
     "",
+    "### Ranked candidate time bins",
+    "",
+    "For each scored demand segment s, the full observed time-bin distribution is "
+    "kept as a candidate time-bin table. Each row is one observed pickup time bin "
+    "t for the same purpose, origin zone, and weekday. The share is "
+    "p(s,t) = n(s,t) / N(s), where n(s,t) is trips in that time bin and N(s) is "
+    "total segment trips. Time bins are ranked by p(s,t), using the earlier time "
+    "bin as the tie-breaker. Therefore, time_bin_rank = 1 is the peak time bin "
+    "t*. Rows with rank greater than 1 are the historically observed alternative "
+    "time bins for possible demand shifting.",
+    "",
     "## Geographical index construction",
     "",
     f"For allowable purposes, candidates are observed {GRID_MILES:g}-mile destination zones "
@@ -470,6 +519,7 @@ report_lines = [
     f"{int(segment_summary['temporal_flexibility_index'].notna().sum()):,}",
     f"- Published geographical scores: "
     f"{int(segment_summary['geographical_flexibility_index'].notna().sum()):,}",
+    f"- Ranked temporal time-bin rows: {len(ranked_time_bin_candidates):,}",
     f"- Temporal alternative rows: {len(temporal_candidate_pool):,}",
     f"- Geographical candidate rows: {len(geographical_candidate_pool):,}",
     "",
@@ -503,6 +553,13 @@ report_lines = [
         "p_s_t": lambda value: f"{value:.1%}",
         "signed_shift_minutes": lambda value: f"{value:+.0f}",
         "temporal_index_contribution": lambda value: f"{value:.4f}",
+    }),
+    "",
+    "### Example ranked candidate time bins",
+    "",
+    md_table(ranked_time_bin_report, {
+        "p_s_t": lambda value: f"{value:.1%}",
+        "signed_shift_minutes": lambda value: f"{value:+.0f}",
     }),
     "",
     "## Highest observed geographical flexibility segments",
@@ -575,6 +632,7 @@ report_lines = [
 REPORT_PATH.write_text("\\n".join(report_lines))
 
 print(f"Saved: {SEGMENT_CSV.name}")
+print(f"Saved: {TIME_BIN_CSV.name}")
 print(f"Saved: {TEMPORAL_CSV.name}")
 print(f"Saved: {GEOGRAPHICAL_CSV.name}")
 print(f"Saved: {REPORT_PATH.name}")
