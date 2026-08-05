@@ -161,13 +161,16 @@ def calculate_temporal_flexibility(
     distribution = distribution.merge(segment_totals, on=keys, how="left")
     distribution["p_time"] = distribution["time_bin_trips"] / distribution["trips"]
     distribution["p_s_t"] = distribution["p_time"]
+    distribution = distribution.sort_values(
+        ["segment_id", "time_bin_trips", "pickup_time_bin_min"],
+        ascending=[True, False, True],
+    )
+    distribution["time_bin_rank"] = (
+        distribution.groupby("segment_id").cumcount() + 1
+    )
 
     peak = (
-        distribution.sort_values(
-            ["segment_id", "time_bin_trips", "pickup_time_bin_min"],
-            ascending=[True, False, True],
-        )
-        .drop_duplicates("segment_id")
+        distribution.loc[distribution["time_bin_rank"].eq(1)]
         .loc[:, [
             "segment_id", "pickup_time_bin_min", "pickup_time_bin", "p_time"
         ]]

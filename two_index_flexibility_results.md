@@ -36,6 +36,10 @@ T_s combines alternative-time prevalence and distance. It ranges from 0 to 1 and
 
 When all alternative distances are at most H, T_s = A_s(D_s/H). Therefore, neither high A_s nor high D_s alone guarantees high T_s. This is observed segment-level shift potential, not evidence of individual rider consent.
 
+### Ranked candidate time bins
+
+For each scored demand segment s, the full observed time-bin distribution is kept as a candidate time-bin table. Each row is one observed pickup time bin t for the same purpose, origin zone, and weekday. The share is p(s,t) = n(s,t) / N(s), where n(s,t) is trips in that time bin and N(s) is total segment trips. Time bins are ranked by p(s,t), using the earlier time bin as the tie-breaker. Therefore, time_bin_rank = 1 is the peak time bin t*. Rows with rank greater than 1 are the historically observed alternative time bins for possible demand shifting.
+
 ## Geographical index construction
 
 For allowable purposes, candidates are observed 1.5-mile destination zones from the same demand segment. For destination share p(s,d):
@@ -68,6 +72,7 @@ The indices summarize diversity but do not identify locations. The candidate tab
 - Reliable segments: 1,527
 - Published temporal scores: 745
 - Published geographical scores: 745
+- Ranked temporal time-bin rows: 2,836
 - Temporal alternative rows: 2,091
 - Geographical candidate rows: 3,060
 
@@ -133,6 +138,41 @@ The indices summarize diversity but do not identify locations. The candidate tab
 | Personal | r14_c24 | Friday | 10:30-11:00 | 09:30-10:00 | 1 | 4.2% | -60 | 0.0208 |
 | Personal | r14_c24 | Friday | 10:30-11:00 | 10:00-10:30 | 1 | 4.2% | -30 | 0.0104 |
 | Personal | r14_c24 | Friday | 10:30-11:00 | 11:00-11:30 | 1 | 4.2% | +30 | 0.0104 |
+
+### Example ranked candidate time bins
+
+| Purpose | origin_zone | weekday | pickup_time_bin | time_bin_trips | p_s_t | time_bin_rank | is_peak_time_bin | signed_shift_minutes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Personal | r22_c16 | Tuesday | 10:00-10:30 | 3 | 15.0% | 1 | True | +0 |
+| Personal | r22_c16 | Tuesday | 13:00-13:30 | 3 | 15.0% | 2 | False | +180 |
+| Personal | r22_c16 | Tuesday | 12:00-12:30 | 2 | 10.0% | 3 | False | +120 |
+| Personal | r22_c16 | Tuesday | 12:30-13:00 | 2 | 10.0% | 4 | False | +150 |
+| Personal | r22_c16 | Tuesday | 14:00-14:30 | 2 | 10.0% | 5 | False | +240 |
+| Personal | r22_c16 | Tuesday | 14:30-15:00 | 2 | 10.0% | 6 | False | +270 |
+| Personal | r22_c16 | Tuesday | 15:00-15:30 | 2 | 10.0% | 7 | False | +300 |
+| Personal | r22_c16 | Tuesday | 16:00-16:30 | 2 | 10.0% | 8 | False | +360 |
+| Personal | r22_c16 | Tuesday | 13:30-14:00 | 1 | 5.0% | 9 | False | +210 |
+| Personal | r22_c16 | Tuesday | 15:30-16:00 | 1 | 5.0% | 10 | False | +330 |
+| Personal | r14_c24 | Friday | 10:30-11:00 | 3 | 12.5% | 1 | True | +0 |
+| Personal | r14_c24 | Friday | 13:00-13:30 | 3 | 12.5% | 2 | False | +150 |
+| Personal | r14_c24 | Friday | 14:00-14:30 | 3 | 12.5% | 3 | False | +210 |
+| Personal | r14_c24 | Friday | 12:00-12:30 | 2 | 8.3% | 4 | False | +90 |
+| Personal | r14_c24 | Friday | 13:30-14:00 | 2 | 8.3% | 5 | False | +180 |
+| Personal | r14_c24 | Friday | 14:30-15:00 | 2 | 8.3% | 6 | False | +240 |
+| Personal | r14_c24 | Friday | 15:00-15:30 | 2 | 8.3% | 7 | False | +270 |
+| Personal | r14_c24 | Friday | 16:00-16:30 | 2 | 8.3% | 8 | False | +330 |
+| Personal | r14_c24 | Friday | 09:00-09:30 | 1 | 4.2% | 9 | False | -90 |
+| Personal | r14_c24 | Friday | 09:30-10:00 | 1 | 4.2% | 10 | False | -60 |
+| Personal | r14_c24 | Friday | 10:00-10:30 | 1 | 4.2% | 11 | False | -30 |
+| Personal | r14_c24 | Friday | 11:00-11:30 | 1 | 4.2% | 12 | False | +30 |
+| Personal | r14_c24 | Friday | 15:30-16:00 | 1 | 4.2% | 13 | False | +300 |
+| Personal | r21_c17 | Friday | 09:00-09:30 | 2 | 20.0% | 1 | True | +0 |
+| Personal | r21_c17 | Friday | 11:00-11:30 | 2 | 20.0% | 2 | False | +120 |
+| Personal | r21_c17 | Friday | 13:30-14:00 | 2 | 20.0% | 3 | False | +270 |
+| Personal | r21_c17 | Friday | 10:00-10:30 | 1 | 10.0% | 4 | False | +60 |
+| Personal | r21_c17 | Friday | 12:00-12:30 | 1 | 10.0% | 5 | False | +180 |
+| Personal | r21_c17 | Friday | 14:00-14:30 | 1 | 10.0% | 6 | False | +300 |
+| Personal | r21_c17 | Friday | 14:30-15:00 | 1 | 10.0% | 7 | False | +330 |
 
 ## Highest observed geographical flexibility segments
 
